@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Capture2PDF Editor</title>
+<link rel="stylesheet" href="editor.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>Capture2PDF 編集</h1>
+  <div id="sourceInfo" class="source-info"></div>
+</header>
+<div class="layout">
+  <aside class="sidebar">
+    <section>
+      <h2>トリミング (px)</h2>
+      <label>左 <input type="number" id="trimLeft" value="0" min="0"></label>
+      <label>右 <input type="number" id="trimRight" value="0" min="0"></label>
+      <label>上端 <input type="number" id="trimTop" value="0" min="0"></label>
+      <label>下端 <input type="number" id="trimBottom" value="0" min="0"></label>
+    </section>
+    <section>
+      <h2>ページ分割</h2>
+      <div id="pageHeightGroup">
+        <label>1ページの高さ (px) <input type="number" id="pageHeight" value="1400" min="50"></label>
+        <div class="preset-row">
+          <button type="button" data-mm="297">A4</button>
+          <button type="button" data-mm="279">Letter</button>
+          <button type="button" data-mm="257">B5</button>
+        </div>
+      </div>
+      <label>出力DPI <input type="number" id="dpi" value="150" min="72" max="300"></label>
+    </section>
+    <section>
+      <h2>書き出し</h2>
+      <label>出力ページサイズ
+        <select id="pageSizePreset">
+          <option value="auto" selected>自動（画像サイズに合わせる）</option>
+          <option value="a3">A3</option>
+          <option value="a4">A4</option>
+          <option value="a5">A5</option>
+          <option value="a6">A6</option>
+          <option value="b4">B4</option>
+          <option value="b5">B5</option>
+          <option value="b6">B6</option>
+          <option value="letter">レター (Letter)</option>
+          <option value="legal">リーガル (Legal)</option>
+        </select>
+      </label>
+      <div id="pageOrientationRow" class="radio-group" hidden>
+        <label class="radio-inline"><input type="radio" name="pageOrientation" id="orientPortrait" value="portrait" checked> 縦</label>
+        <label class="radio-inline"><input type="radio" name="pageOrientation" id="orientLandscape" value="landscape"> 横</label>
+      </div>
+      <p class="hint">「自動」以外を選ぶと、指定した用紙サイズに合わせてページ全体を縮小し
+        （はみ出さないように余白付きで中央配置）、PDFの各ページがすべて同じ物理サイズになります。
+        画像の解像度自体は変わりません。</p>
+      <label>ページ画像の形式
+        <select id="pageFormat">
+          <option value="jpeg" selected>JPEG（高画質・軽量）</option>
+          <option value="png">PNG（可逆・最高画質・大容量）</option>
+        </select>
+      </label>
+      <label id="pageQualityRow">JPEG品質 <input type="range" id="pageQuality" min="1" max="100" value="95"></label>
+      <label>PDF内画像の解像度上限
+        <select id="maxPdfDpi">
+          <option value="0">無制限（撮影解像度のまま）</option>
+          <option value="300" selected>300 DPI相当</option>
+          <option value="220">220 DPI相当</option>
+          <option value="150">150 DPI相当</option>
+        </select>
+      </label>
+      <p class="hint">PDFもこの形式・品質で書き出します。PNGを選ぶと画質の劣化が一切ありませんが、
+        ファイルサイズがかなり大きくなります（ページ数が多い本では特に）。通常はJPEG＋高めの
+        品質で十分きれいです。解像度上限を下げると、ページの物理サイズはそのままに埋め込み画像の
+        画素数だけ減らしてファイルサイズを抑えます（見た目上はほぼ変わりません）。同じ内容のページが
+        複数あった場合は自動的に1つだけ埋め込んで容量を節約します。</p>
+      <label>OCRでテキスト埋め込み
+        <select id="ocrLang">
+          <option value="">なし（埋め込まない）</option>
+          <option value="jpn">日本語</option>
+          <option value="jpn_vert">日本語（縦書き）</option>
+          <option value="eng">英語</option>
+        </select>
+      </label>
+      <p class="hint" id="ocrHint">選択すると、PDF内に検索・コピー可能な透明テキスト層を埋め込みます
+        （書き出し時に1回だけ処理するため、閲覧のたびに文字抽出が走ることはありません）。ページ数が
+        多い本では書き出しに時間がかかります。</p>
+      <button type="button" id="exportPdfBtn" class="primary">本のPDFとしてダウンロード</button>
+      <button type="button" id="exportImagesBtn">ページ画像を個別ダウンロード</button>
+      <p class="hint">総ページ数: <span id="pageCount">0</span> / 除外中: <span id="excludedCount">0</span></p>
+    </section>
+    <section>
+      <button type="button" id="discardBtn" class="danger">キャプチャデータを破棄</button>
+    </section>
+  </aside>
+  <main class="preview-area">
+    <div id="status" class="status"></div>
+    <div id="compositeSection">
+      <h2>結合プレビュー（点線＝トリミング/ページ区切り）</h2>
+      <div id="compositeWrap" class="composite-wrap"></div>
+    </div>
+
+    <h2 id="tileRawListHeading">撮影タイル一覧（エラーで写りが悪いタイルだけを個別に撮り直せます）</h2>
+    <div id="tileRawList" class="tile-raw-list"></div>
+
+    <h2>ページプレビュー</h2>
+    <div id="pageGrid" class="page-grid"></div>
+  </main>
+</div>
+<script src="pdf-writer.js"></script>
+<script src="../vendor/tesseract/tesseract.min.js"></script>
+<script src="ocr.js"></script>
+<script src="editor.js"></script>
+</body>
+</html>

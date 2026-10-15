@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Capture2PDF</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>Capture2PDF</h1>
+  <p class="lead">ページ全体をキャプチャして本のPDFにします。サイズ上限はありません。</p>
+
+  <div id="recoveryBanner" class="recovery-banner" hidden>
+    <p id="recoveryText"></p>
+    <button type="button" id="recoveryBtn" class="secondary">確認画面を開く</button>
+  </div>
+
+  <div class="mode-row">
+    <label class="radio-row">
+      <input type="radio" name="captureMode" id="modeScroll" value="scroll" checked>
+      スクロールしてキャプチャ
+    </label>
+    <label class="radio-row">
+      <input type="radio" name="captureMode" id="modePageTurn" value="pageturn">
+      ページ送りしてキャプチャ
+    </label>
+  </div>
+
+  <div id="scrollSettings">
+    <label>
+      スクロール後の待機時間 (ms)
+      <input type="number" id="delay" min="0" step="50" value="600">
+    </label>
+    <p class="hint">読み込みが遅いページでは長めに設定してください。</p>
+
+    <label class="checkbox-row">
+      <input type="checkbox" id="hideFixed" checked>
+      固定ヘッダー/フッターを2枚目以降で非表示にする
+    </label>
+
+    <label>
+      重なり (px)
+      <input type="number" id="overlap" min="0" step="10" value="0">
+    </label>
+    <p class="hint">タイルの境目に線や影が出る場合、ここに値を入れるとスクロールを少し重ねて
+      撮影し、結合時にその重なり部分の真ん中で継ぎ目を作るので目立ちにくくなります。</p>
+
+    <label class="checkbox-row">
+      <input type="checkbox" id="startFromCurrentPosition">
+      現在のスクロール位置から開始する
+    </label>
+    <p class="hint">オフの場合は常にページ／領域の先頭から撮影します。オンにすると、あらかじめ
+      ページを目的の位置までスクロールしてから開始した場合、その位置から撮影を始めます
+      （表紙や目次を飛ばしたい場合などに便利です）。「範囲を選択」の場合は、選択した領域が
+      その時点でスクロールしていた位置から始まります。</p>
+  </div>
+
+  <div id="pageTurnSettings" hidden>
+    <label>
+      ページ数
+      <input type="number" id="pageCount" min="1" step="1" value="10">
+    </label>
+    <p class="hint">最初の1枚（今表示している画面）を含む、キャプチャしたい合計ページ数です。</p>
+
+    <label>
+      クリックしてから撮影するまでの待機時間 (ms)
+      <input type="number" id="clickDelay" min="0" step="50" value="500">
+    </label>
+    <p class="hint">ページ送り後、表示が切り替わるまでの時間に合わせて調整してください。</p>
+  </div>
+
+  <label>
+    画像形式
+    <select id="format">
+      <option value="png" selected>PNG (高画質)</option>
+      <option value="jpeg">JPEG (軽量)</option>
+    </select>
+  </label>
+
+  <label id="qualityRow">
+    JPEG品質
+    <input type="range" id="quality" min="1" max="100" value="90">
+  </label>
+
+  <button id="startBtn" class="primary">全体をキャプチャ（自動検出）</button>
+  <button id="pickBtn" class="secondary">スクロール範囲を選択してキャプチャ</button>
+  <p class="hint" id="scrollPickHint">ページ自体がスクロールしないビューア（EBSCOなどのeBook/PDFリーダー）では、
+    自動検出がうまくいかない場合にこちらを使い、実際にスクロールする領域をクリックしてください。</p>
+
+  <button id="pageTurnStartBtn" class="primary" hidden>「次のページ」ボタンを選んでキャプチャ開始</button>
+  <p class="hint" id="pageTurnHint" hidden>クリックすると、ブラウザ画面上で「次のページ」に進むボタンを
+    クリックして指定するモードになります。指定した瞬間から、1ページ目（現在の画面）の撮影を開始します。</p>
+
+  <p class="hint">開始すると進捗・一時停止・キャンセル用の小さなウィンドウが別途開きます。</p>
+
+  <p id="status" class="status"></p>
+</body>
+<script src="popup.js"></script>
+</html>

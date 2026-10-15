@@ -1,0 +1,130 @@
+body {
+  width: 300px;
+  font-family: -apple-system, "Segoe UI", "Hiragino Sans", sans-serif;
+  padding: 12px 14px 16px;
+  color: #1f2328;
+}
+
+h1 {
+  font-size: 15px;
+  margin: 0 0 6px;
+}
+
+.lead {
+  font-size: 11px;
+  color: #57606a;
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+label input[type="number"],
+label input[type="range"],
+label select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  font-weight: 400;
+  font-size: 13px;
+  box-sizing: border-box;
+  padding: 4px 6px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox-row input {
+  margin: 0;
+}
+
+.recovery-banner {
+  background: #fff8c5;
+  border: 1px solid #d4a72c;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.recovery-banner p {
+  font-size: 11px;
+  margin: 0 0 6px;
+  line-height: 1.4;
+}
+
+.recovery-banner button {
+  margin-top: 0;
+}
+
+.mode-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f6f8fa;
+  border-radius: 6px;
+}
+
+.radio-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.radio-row input {
+  margin: 0;
+}
+
+.hint {
+  font-size: 10px;
+  color: #57606a;
+  margin: -6px 0 10px;
+}
+
+button.primary {
+  width: 100%;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #1f6feb;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button.primary:disabled {
+  background: #9fb8e6;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f6feb;
+  background: #fff;
+  border: 1px solid #1f6feb;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.status {
+  font-size: 11px;
+  color: #57606a;
+  margin-top: 8px;
+  min-height: 14px;
+}

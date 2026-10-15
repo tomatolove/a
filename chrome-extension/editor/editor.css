@@ -1,0 +1,391 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", "Hiragino Sans", sans-serif;
+  color: #1f2328;
+  background: #f6f8fa;
+}
+
+.topbar {
+  padding: 10px 18px;
+  background: #fff;
+  border-bottom: 1px solid #d0d7de;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.topbar h1 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.source-info {
+  font-size: 12px;
+  color: #57606a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+}
+
+.sidebar {
+  width: 300px;
+  flex: 0 0 300px;
+  background: #fff;
+  border-right: 1px solid #d0d7de;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar section {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eaeef2;
+}
+
+.sidebar h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #57606a;
+  margin: 0 0 10px;
+}
+
+.sidebar label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.sidebar input[type="number"],
+.sidebar input[type="range"],
+.sidebar select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  font-weight: 400;
+  font-size: 13px;
+  padding: 4px 6px;
+}
+
+.preset-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.preset-row button {
+  flex: 1;
+  padding: 4px 0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.radio-group {
+  display: flex;
+  gap: 14px;
+  margin: -4px 0 10px;
+}
+
+.radio-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400 !important;
+  margin-bottom: 0 !important;
+}
+
+.radio-inline input {
+  margin: 0;
+}
+
+button.primary {
+  width: 100%;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #1f6feb;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+button.danger {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+  color: #cf222e;
+  background: #fff;
+  border: 1px solid #cf222e;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#exportImagesBtn {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.hint {
+  font-size: 11px;
+  color: #57606a;
+}
+
+.preview-area {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 24px;
+}
+
+.preview-area h2 {
+  font-size: 13px;
+  color: #57606a;
+}
+
+.status {
+  font-size: 12px;
+  color: #1f6feb;
+  min-height: 16px;
+}
+
+.composite-wrap {
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  margin-bottom: 20px;
+  cursor: crosshair;
+}
+
+.composite-inner {
+  position: relative;
+}
+
+.composite-inner img {
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.guide-line {
+  position: absolute;
+}
+
+.guide-line.trim-line {
+  left: 0;
+  right: 0;
+  border-top: 2px dashed #cf222e;
+}
+
+.guide-line.page-line {
+  left: 0;
+  right: 0;
+  border-top: 2px dashed #1a7f37;
+}
+
+.guide-line.v-line {
+  top: 0;
+  bottom: 0;
+  border-left: 2px dashed #9a6700;
+}
+
+.guide-line.tile-line {
+  left: 0;
+  right: 0;
+  border-top: 1px dotted rgba(31, 111, 235, 0.35);
+}
+
+.tile-marker-label {
+  position: absolute;
+  left: 2px;
+  transform: translateY(-100%);
+  font-size: 9px;
+  line-height: 1.2;
+  color: #1f6feb;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 0 2px;
+  pointer-events: none;
+}
+
+.tile-popup {
+  position: fixed;
+  z-index: 10000;
+  width: 240px;
+  background: #fff;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 10px;
+}
+
+.tile-popup img {
+  width: 100%;
+  display: block;
+  border: 1px solid #eaeef2;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.tile-popup-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2328;
+  margin-bottom: 8px;
+}
+
+.tile-popup button {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px 0;
+  margin-top: 6px;
+  border: 1px solid #d0d7de;
+  border-radius: 5px;
+  background: #f6f8fa;
+  cursor: pointer;
+}
+
+.tile-popup .pick-btn {
+  border-color: #1f6feb;
+  color: #1f6feb;
+  background: #fff;
+}
+
+.tile-popup-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 4px !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  color: #57606a;
+  cursor: pointer;
+}
+
+.page-turn-preview-item {
+  margin-bottom: 20px;
+}
+
+.page-turn-preview-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #57606a;
+  margin-bottom: 4px;
+}
+
+.tile-raw-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.tile-raw-item {
+  width: 150px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 6px;
+  background: #fff;
+  text-align: center;
+}
+
+.tile-raw-item img {
+  width: 100%;
+  display: block;
+  border: 1px solid #eaeef2;
+  margin-bottom: 6px;
+}
+
+.tile-raw-item .tile-raw-label {
+  display: block;
+  font-size: 11px;
+  color: #57606a;
+  margin-bottom: 6px;
+}
+
+.tile-raw-item button {
+  width: 100%;
+  font-size: 11px;
+  padding: 4px 0;
+  cursor: pointer;
+  border: 1px solid #d0d7de;
+  border-radius: 5px;
+  background: #f6f8fa;
+  margin-top: 4px;
+}
+
+.tile-raw-item button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tile-raw-item button.pick-btn {
+  border-color: #1f6feb;
+  color: #1f6feb;
+  background: #fff;
+}
+
+.page-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-cell {
+  width: 140px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 6px;
+  background: #fff;
+  text-align: center;
+}
+
+.page-cell.excluded {
+  opacity: 0.35;
+}
+
+.page-cell img {
+  width: 100%;
+  display: block;
+  border: 1px solid #eaeef2;
+  margin-bottom: 6px;
+}
+
+.page-label {
+  font-size: 11px;
+  color: #57606a;
+  margin-bottom: 6px;
+}
+
+.page-cell button {
+  width: 100%;
+  font-size: 11px;
+  padding: 3px 0;
+  cursor: pointer;
+}
