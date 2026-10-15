@@ -222,10 +222,16 @@ async function scrollSettleCaptureVerify(tabId, windowId, options, y, hideFixed)
   await sleep(Math.max(options.delayMs, MIN_CAPTURE_INTERVAL_MS));
   const settled = await settlePosition(tabId, scrollResult);
 
+  // The progress banner is injected directly into the captured page (see content-script.js),
+  // so without this it was showing up IN every captured tile. Hidden for the shortest possible
+  // window — just around the actual screenshot — and restored right after, so it's still
+  // visible to the user between captures.
+  await sendToTab(tabId, { type: 'scc:setProgressBannerHidden', hidden: true }).catch(() => {});
   const dataUrl = await captureVisibleTabWithRetry(windowId, {
     format: options.format === 'jpeg' ? 'jpeg' : 'png',
     quality: options.format === 'jpeg' ? options.quality || 90 : undefined
   });
+  await sendToTab(tabId, { type: 'scc:setProgressBannerHidden', hidden: false }).catch(() => {});
 
   const verify = await sendToTab(tabId, { type: 'scc:getCurrentPosition' }).catch(() => settled);
   if (verify.scrollY !== settled.scrollY) {
@@ -391,10 +397,15 @@ async function captureCurrentViewWithRetries(tabId, windowId, options) {
   let lastErr;
   for (let attempt = 0; attempt < STEP_RETRY_ATTEMPTS; attempt++) {
     try {
+      // See the equivalent hide/show in scrollSettleCaptureVerify — same reason: the banner is
+      // part of the captured page's own DOM, so it must be hidden for the instant of the
+      // screenshot or it shows up in every captured page.
+      await sendToTab(tabId, { type: 'scc:setProgressBannerHidden', hidden: true }).catch(() => {});
       const dataUrl = await captureVisibleTabWithRetry(windowId, {
         format: options.format === 'jpeg' ? 'jpeg' : 'png',
         quality: options.format === 'jpeg' ? options.quality || 90 : undefined
       });
+      await sendToTab(tabId, { type: 'scc:setProgressBannerHidden', hidden: false }).catch(() => {});
       return { dataUrl };
     } catch (err) {
       lastErr = err;

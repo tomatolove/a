@@ -3,6 +3,12 @@
   "name": "Capture2PDF",
   "version": "1.1.0",
   "description": "スクロールキャプチャ、またはページ送り（クリック）キャプチャでページ全体を撮影し、トリミング・ページ分割してPDF化できる拡張機能。サイズ制限なし、OCRテキスト埋め込み・ファイルサイズ圧縮対応。",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "permissions": [
     "scripting",
     "tabs",
@@ -19,6 +25,12 @@
   },
   "action": {
     "default_title": "Capture2PDF",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
     "default_popup": "popup/popup.html"
   },
   "content_security_policy": {

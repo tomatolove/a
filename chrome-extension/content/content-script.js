@@ -123,13 +123,16 @@ if (!window.__sccLoaded) {
   function showProgressBanner(text) {
     if (!progressEl) {
       progressEl = document.createElement('div');
+      // Semi-transparent background (not a plain `opacity`, which would also fade the text) —
+      // the banner stays legible while letting the page show through a little behind it.
       progressEl.style.cssText =
         'position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:2147483647;' +
-        'background:#1f2328;color:#fff;padding:6px 14px;border-radius:6px;' +
+        'background:rgba(31,35,40,0.6);color:#fff;padding:6px 14px;border-radius:6px;' +
         'font:12px -apple-system,sans-serif;pointer-events:none;';
       document.documentElement.appendChild(progressEl);
     }
     progressEl.textContent = text;
+    progressEl.style.visibility = '';
   }
 
   function hideProgressBanner() {
@@ -137,6 +140,15 @@ if (!window.__sccLoaded) {
       progressEl.remove();
       progressEl = null;
     }
+  }
+
+  // Unlike hideProgressBanner (which removes it entirely, for when capture has actually
+  // stopped), this just toggles visibility for the instant of a single screenshot — the
+  // banner is part of the captured page's own DOM, so it has to be invisible for that one
+  // frame or it ends up baked into the captured image. Keeping the element (not removing/
+  // recreating it) avoids a visible flicker between every single tile.
+  function setProgressBannerHidden(hidden) {
+    if (progressEl) progressEl.style.visibility = hidden ? 'hidden' : '';
   }
 
   // Lets the user click a specific element on the page — the scroll region to capture (scroll
@@ -321,6 +333,11 @@ if (!window.__sccLoaded) {
         }
         case 'scc:showProgress': {
           showProgressBanner(msg.text);
+          sendResponse({ ok: true });
+          break;
+        }
+        case 'scc:setProgressBannerHidden': {
+          setProgressBannerHidden(!!msg.hidden);
           sendResponse({ ok: true });
           break;
         }
