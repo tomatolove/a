@@ -61,6 +61,12 @@
         </select>
       </label>
       <label id="pageQualityRow">JPEG品質 <input type="range" id="pageQuality" min="1" max="100" value="95"></label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="grayscaleOutput">
+        グレースケールで出力
+      </label>
+      <p class="hint">色情報を捨てて白黒にします。文字中心の本ではファイルサイズを抑えられます
+        （PNG/可逆の場合は特に、1画素あたりの保存データが1/3になります）。</p>
       <label>PDF内画像の解像度上限
         <select id="maxPdfDpi">
           <option value="0">無制限（撮影解像度のまま）</option>

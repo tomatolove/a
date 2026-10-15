@@ -534,6 +534,24 @@ function canvasToBlob(canvas, format, quality) {
   });
 }
 
+// Standard luma weighting, on a fresh canvas (never mutates the caller's — it's reused for
+// previews and other export paths).
+function toGrayscaleCanvas(canvas) {
+  const out = document.createElement('canvas');
+  out.width = canvas.width;
+  out.height = canvas.height;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(canvas, 0, 0);
+  const imgData = ctx.getImageData(0, 0, out.width, out.height);
+  const data = imgData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const y = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+    data[i] = data[i + 1] = data[i + 2] = y;
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return out;
+}
+
 function updateRawTileThumb(index, dataUrl) {
   const item = qs('tileRawList').children[index];
   const img = item && item.querySelector('img');
@@ -960,6 +978,7 @@ function wireEvents() {
   qs('exportImagesBtn').addEventListener('click', async () => {
     const format = qs('pageFormat').value;
     const quality = Number(qs('pageQuality').value);
+    const grayscale = qs('grayscaleOutput').checked;
     const pages = activePages();
     if (pages.length === 0) {
       qs('status').textContent = '書き出すページがありません。';
@@ -967,7 +986,8 @@ function wireEvents() {
     }
     for (let i = 0; i < pages.length; i++) {
       qs('status').textContent = `画像を書き出し中 (${i + 1}/${pages.length})...`;
-      const blob = await canvasToBlob(pages[i].canvas, format, quality);
+      const srcCanvas = grayscale ? toGrayscaleCanvas(pages[i].canvas) : pages[i].canvas;
+      const blob = await canvasToBlob(srcCanvas, format, quality);
       const url = URL.createObjectURL(blob);
       const ext = format === 'png' ? 'png' : 'jpg';
       const filename = `capture2pdf/page-${String(i + 1).padStart(3, '0')}.${ext}`;
@@ -1006,6 +1026,7 @@ function wireEvents() {
     const ocrLang = qs('ocrLang').value; // '' = no OCR text layer
     const sizePreset = qs('pageSizePreset').value; // 'auto' = page sized to the image itself
     const orientation = qs('orientLandscape').checked ? 'landscape' : 'portrait';
+    const grayscale = qs('grayscaleOutput').checked;
     qs('status').textContent = 'PDFを生成しています...';
 
     // Only runs at export time, not while editing, so this doesn't affect interactive
@@ -1024,8 +1045,8 @@ function wireEvents() {
       const encodeCanvas = downsampleCanvasToDpi(srcCanvas, dpi, maxDpi);
       const imgResult =
         format === 'png'
-          ? await canvasToLosslessPdfImage(encodeCanvas)
-          : await canvasToLossyPdfImage(encodeCanvas, quality);
+          ? await canvasToLosslessPdfImage(encodeCanvas, grayscale)
+          : await canvasToLossyPdfImage(encodeCanvas, quality, grayscale);
       pdfPages.push({ ...imgResult, ...geometry, srcCanvas });
       if (idx % 5 === 4) {
         qs('status').textContent = `PDFを生成しています... (${idx + 1}/${pages.length})`;

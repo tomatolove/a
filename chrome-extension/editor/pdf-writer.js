@@ -28,27 +28,57 @@ async function deflate(bytes) {
   return new Uint8Array(await new Response(cs.readable).arrayBuffer());
 }
 
-// Extracts a canvas's pixels as raw, tightly-packed RGB bytes (alpha dropped — PDF pages
-// are opaque) and deflate-compresses them with the browser's built-in CompressionStream, so
-// embedding a "lossless" page needs no PNG/zlib library of our own.
-async function canvasToLosslessPdfImage(canvas) {
+// Extracts a canvas's pixels as raw, tightly-packed RGB (or, in grayscale mode, single-channel
+// luma) bytes (alpha dropped — PDF pages are opaque) and deflate-compresses them with the
+// browser's built-in CompressionStream, so embedding a "lossless" page needs no PNG/zlib
+// library of our own. Grayscale isn't just a visual effect here: since this path stores raw
+// uncompressed-per-pixel samples (deflate only squeezes redundancy, not color depth), dropping
+// from 3 channels to 1 directly cuts the embedded data size by roughly 3x, on top of whatever
+// deflate itself saves.
+async function canvasToLosslessPdfImage(canvas, grayscale) {
   const ctx = canvas.getContext('2d');
   const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const raw = new Uint8Array(width * height * 3);
+  const raw = new Uint8Array(width * height * (grayscale ? 1 : 3));
   let o = 0;
-  for (let i = 0; i < data.length; i += 4) {
-    raw[o++] = data[i];
-    raw[o++] = data[i + 1];
-    raw[o++] = data[i + 2];
+  if (grayscale) {
+    for (let i = 0; i < data.length; i += 4) {
+      raw[o++] = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+    }
+  } else {
+    for (let i = 0; i < data.length; i += 4) {
+      raw[o++] = data[i];
+      raw[o++] = data[i + 1];
+      raw[o++] = data[i + 2];
+    }
   }
   const bytes = await deflate(raw);
-  return { format: 'png', bytes, widthPx: width, heightPx: height };
+  return { format: 'png', bytes, widthPx: width, heightPx: height, colorSpace: grayscale ? 'gray' : 'rgb' };
 }
 
-async function canvasToLossyPdfImage(canvas, quality) {
-  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality / 100));
+// The Canvas API has no grayscale JPEG encoder, so "grayscale" here means desaturating the
+// pixels (R=G=B=luma) on a scratch copy before handing them to the normal JPEG encoder — the
+// resulting file is still a 3-component JPEG stream (no size win the way the lossless path
+// gets one), just visually black-and-white. Draws onto a fresh canvas rather than mutating the
+// caller's, since callers may reuse that same canvas elsewhere (previews, other export paths).
+async function canvasToLossyPdfImage(canvas, quality, grayscale) {
+  let srcCanvas = canvas;
+  if (grayscale) {
+    srcCanvas = document.createElement('canvas');
+    srcCanvas.width = canvas.width;
+    srcCanvas.height = canvas.height;
+    const srcCtx = srcCanvas.getContext('2d');
+    srcCtx.drawImage(canvas, 0, 0);
+    const imgData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const y = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+      data[i] = data[i + 1] = data[i + 2] = y;
+    }
+    srcCtx.putImageData(imgData, 0, 0);
+  }
+  const blob = await new Promise((resolve) => srcCanvas.toBlob(resolve, 'image/jpeg', quality / 100));
   const bytes = new Uint8Array(await blob.arrayBuffer());
-  return { format: 'jpeg', bytes, widthPx: canvas.width, heightPx: canvas.height };
+  return { format: 'jpeg', bytes, widthPx: canvas.width, heightPx: canvas.height, colorSpace: 'rgb' };
 }
 
 // Cheap fingerprint (not cryptographic — just needs to catch exact duplicates without
@@ -275,7 +305,7 @@ async function buildPdfFromImages(pages, onProgress) {
   const pageInfos = pages.map((page) => {
     const pageObjNum = allocObj();
     const contentObjNum = allocObj();
-    const key = `${page.format}:${page.widthPx}x${page.heightPx}:${fingerprintBytes(page.bytes)}`;
+    const key = `${page.format}:${page.colorSpace || 'rgb'}:${page.widthPx}x${page.heightPx}:${fingerprintBytes(page.bytes)}`;
     let imgObjNum = imageCache.get(key);
     const isNewImage = imgObjNum == null;
     if (isNewImage) {
@@ -378,10 +408,11 @@ async function buildPdfFromImages(pages, onProgress) {
 
     if (isNewImage) {
       const filter = page.format === 'png' ? 'FlateDecode' : 'DCTDecode';
+      const colorSpace = page.colorSpace === 'gray' ? '/DeviceGray' : '/DeviceRGB';
       beginObj(imgObjNum);
       pushStr(
         `<< /Type /XObject /Subtype /Image /Width ${page.widthPx} /Height ${page.heightPx} ` +
-          `/ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /${filter} /Length ${page.bytes.length} >>\nstream\n`
+          `/ColorSpace ${colorSpace} /BitsPerComponent 8 /Filter /${filter} /Length ${page.bytes.length} >>\nstream\n`
       );
       push(page.bytes);
       pushStr('\nendstream\n');
